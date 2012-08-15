@@ -1,0 +1,33 @@
+#!/bin/sh
+
+# lowercase everything
+perl-rename  'y/A-Z/a-z/' *
+
+# if found at the beginning then delete else replace with period '.'
+perl-rename  "s/^([\(\[\{]|[\)\]\}])//g" *
+perl-rename  "s/([\(\[\{]|[\)\]\}])/./g" *
+
+perl-rename  's/^\s+//g' *
+perl-rename  's/\s+/\./g' *
+
+perl-rename  's/^\_+//g' *
+perl-rename  's/\_+/\./g' *
+
+perl-rename  's/^\,+//g' *
+perl-rename  's/\,+/\./g' *
+
+perl-rename  's/^\-+//g' *
+perl-rename  's/\-+/\./g' *
+
+perl-rename  's/^\=+//g' *
+perl-rename  's/\=+/\./g' *
+
+perl-rename  's/~//g' *
+
+perl-rename  's/:/./g' *
+
+perl-rename  "s/\'//g" *
+
+perl-rename  's/\.+/\./g' *
+
+perl-rename  's/\.$//g' *

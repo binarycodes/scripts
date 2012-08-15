@@ -1,0 +1,81 @@
+#!/bin/zsh
+
+move_files () {
+    mv -t /home/sujoy/documents/finance/bsnl.landline.bills/ /home/sujoy/randomtrash/8005727947*(N) 2>/dev/null
+    mv -t /home/sujoy/torrents/ /home/sujoy/randomtrash/*.torrent(N) 2>/dev/null
+    mv -t /home/sujoy/videos/ /home/sujoy/randomtrash/*.(flv|wmv|3gp|mp4|d|ogv|mov|m4v|mkv|avi)(N) 2>/dev/null
+    mv -t /home/sujoy/music/ /home/sujoy/randomtrash/*.(mp3|ogg)(N) 2>/dev/null
+    mv -t /home/sujoy/archives/ /home/sujoy/randomtrash/*.(rar|zip|gz|bz2|tgz|tar|7z)(N) 2>/dev/null
+    mv -t /home/sujoy/documents/finance/trading/zerodha/ /home/sujoy/randomtrash/(WBDS0928|trade_details)*.pdf(N) 2>/dev/null
+    mv -t /home/sujoy/documents/pdfs/ /home/sujoy/randomtrash/*.pdf(N) 2>/dev/null
+    mv -t /home/sujoy/documents/ /home/sujoy/randomtrash/*.(doc|txt|xls)(N) 2>/dev/null
+    mv -t /home/sujoy/documents/ebooks/ /home/sujoy/randomtrash/*.chm(N) 2>/dev/null
+}
+
+process_directory () {
+    if [[ -d $1 ]]; then
+        echo "entering directory :: $1"
+        current_dir=$(pwd)
+        cd "$1"
+        echo -n "renaming files ..."
+        /home/sujoy/bin/myrename 2>/dev/null
+        echo " done"
+        echo -n "removing execute access from files ..."
+        find "$PWD" -type f -execdir chmod -x '{}' \+
+        echo " done"
+        cd "$current_dir"
+    fi
+}
+
+torbox_torrent() {
+    cd ~/torrents
+    for i in *.torrent; do
+        other=$(echo "${i%.*}" | grep -c "[^0-9a-z]")
+        if [[ ${#i} == 48 && $other == 0 ]]; then
+            mv "$i" ~/torrents/deluge/
+        fi
+    done
+}
+
+
+directories_to_process=(/home/sujoy/torrents/
+    /home/sujoy/videos/
+    /home/sujoy/music/
+    /home/sujoy/archives/
+    /home/sujoy/documents/pdfs/
+    /home/sujoy/documents/
+    /home/sujoy/documents/ebooks/)
+
+
+# --- Function execution starts here ---
+move_files
+
+# Note to self: shell array reference starts at 1
+case "${1}" in
+    -t) #torrents
+        process_directory "${directories_to_process[1]}"
+        torbox_torrent
+        ;;
+    -v) #videos
+        process_directory "${directories_to_process[2]}"
+        ;;
+    -m) #music
+        process_directory "${directories_to_process[3]}"
+        ;;
+    -a) #archives
+        process_directory "${directories_to_process[4]}"
+        ;;
+    -p) #pdfs
+        process_directory "${directories_to_process[5]}"
+        ;;
+    -d) #documents
+        process_directory "${directories_to_process[6]}"
+        ;;
+    -e) #ebooks
+        process_directory "${directories_to_process[7]}"
+        ;;
+    *) #all
+        for directory in "${directories_to_process[@]}"; do
+            process_directory "$directory"
+        done
+esac

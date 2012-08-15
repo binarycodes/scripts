@@ -1,0 +1,71 @@
+#!/bin/bash
+
+
+#returns 1 if wireless is active
+function wireless_active() {
+    echo $(grep -c "[0-9]*" /sys/class/net/wlan0/wireless/link 2>/dev/null)
+}
+readonly -f wireless_active
+
+
+#returns 1 if pppoe is active, meaning we are connected to the internet
+function pppoe_active() {
+    echo $(grep -c "[0-9]*" /sys/class/net/ppp0/carrier 2>/dev/null)
+}
+readonly -f pppoe_active
+
+
+
+function start() {
+	while [[ $(wireless_active) != 1 ]]; do
+		sudo /etc/rc.d/wifi restart 2>/dev/null 1>&2
+		sleep 2
+	done
+	echo -e "wireless active ..."
+	
+	while [[ $(pppoe_active) != 1 ]]; do
+		sudo /usr/sbin/pppoe-stop 2>/dev/null 1>&2
+		sudo /usr/sbin/pppoe-start 2>/dev/null 1>&2
+		sleep 2
+	done
+	echo -e "pppoe active ..."
+}
+readonly -f start
+
+function stop() {
+	while [[ $(pppoe_active) == 1 ]]; do
+		sudo /usr/sbin/pppoe-stop 2>/dev/null 1>&2
+		sleep 2
+	done
+	echo -e "pppoe is now inactive ..."
+	
+	while [[ $(wireless_active) == 1 ]]; do
+		sudo /etc/rc.d/wifi stop 2>/dev/null 1>&2
+		sleep 2
+	done
+	echo -e "wireless is now inactive ..."
+}
+readonly -f stop
+
+
+function restart() {
+	stop
+	sleep 2
+	start
+}
+readonly -f restart
+
+
+
+#without any command line arguments, connect to the internet
+#and act accordingly if stop or restart is passed as argument
+if [[ $1 == "stop" ]]; then
+	stop
+elif [[ $1 == "restart" ]]; then
+	restart
+else
+	start
+fi
+
+exit
+

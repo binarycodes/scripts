@@ -1,0 +1,43 @@
+#!/usr/bin/env perl
+
+# display the files contained in a torrent file
+# not perfect yet, but works well enough for my humble needs
+use strict;
+use warnings;
+
+
+for my $arg (@ARGV) {
+    if ( -f $arg ) {
+        my $torrentFile = open TORRENT, "<", $arg;
+
+        if ( ! $torrentFile ) {
+            print "couldn't open file $arg\n";
+        } else {
+            my $DATA_LINE = <TORRENT>;
+            close TORRENT;
+
+            my @data = ($DATA_LINE =~ /(pathl.*piece)/);
+
+            $data[0] =~ s/length.*?://g;
+            $data[0] =~ s/:piece.*//g;
+            $data[0] =~ s/path.utf.*?:.*?://g;
+            $data[0] =~ s/name.utf.*//g;
+
+            my @name = ($data[0] =~ /name.*?:(.*)..$/);
+            print "Name :: $name[0]\n";
+
+            $data[0] =~ s/:name.*//g;
+            $data[0] =~ s/(.*\....).*?$/$1/g;
+
+            my @files = split /pathl/, $data[0];
+
+            for my $file (@files) {
+                $file =~ s/^[\d]+://;
+                $file =~ s/(.*\....).*/$1/;
+                $file =~ s/..:/\//;
+                print "$file\n";
+            }
+        }
+    }
+}
+

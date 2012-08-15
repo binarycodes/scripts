@@ -1,0 +1,8 @@
+#!/bin/bash
+
+if [ -z $1 ]
+then
+	echo "usage: $0 filename"
+else
+	aria2c -c --http-user=username --http-passwd=password -j 2 -s 6 -i $1
+fi

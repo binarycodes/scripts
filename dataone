@@ -1,0 +1,101 @@
+#!/usr/bin/perl
+# http://digitalpbk.blogspot.com/2008/06/free-dataone-account-usage-checker-perl.html
+
+use WWW::Mechanize;
+use HTTP::Cookies;
+use HTTP::Request::Common;
+
+my $verbose = 0;
+my $username;
+my $password;
+my $url="http://10.240.64.195/weblogin.jsp";
+
+for(my $i=0;$i<=$#ARGV;$i++)
+{
+ if($ARGV[$i] eq "-v" or $ARGV[$i] eq "--verbose"){ $verbose = 1; }
+ elsif($ARGV[$i] eq "-u" or $ARGV[$i] eq "--user"){ $username = $ARGV[++$i]; }
+ elsif($ARGV[$i] eq "-p" or $ARGV[$i] eq "--pass"){ $password = $ARGV[++$i]; }
+ elsif($ARGV[$i] eq "-i" or $ARGV[$i] eq "--url"){ $url = $ARGV[++$i]; }
+}
+unless($username)
+{
+print "Username : ";chomp($username = <STDIN>);
+}
+unless($password)
+{
+print "Password : ";
+`stty -echo`;
+chomp($password = <STDIN>);
+`stty echo`;
+print "\n";
+}
+$cj = HTTP::Cookies->new(file => "/tmp/cookie.jar",autosave=>1);
+$mech=WWW::Mechanize->new(cookie_jar=>$cj);
+
+print "GET $url\n" if($verbose);
+$mech->get($url);
+exit unless($mech->success());
+
+my $cnt = $mech->response->as_string;
+
+$cnt =~ s[action="../(.*?)"][action="$1"]is;
+$mech->update_html($cnt);
+
+$mech->form_number(1);
+$mech->field("username",$username);
+$mech->field("password",$password);
+print "LOGIN\n" if($verbose);
+$mech->submit();
+
+exit unless($mech->success());
+$cnt = $mech->response->as_string;
+
+$|=1;
+my $uri;my $maxre=0;
+while($cnt =~ m/location.replace\('(.*?)'\)/is)
+{
+ print "FOLLOWING .. " if($verbose);
+ 
+ $uri = $1;
+ if($uri =~ m/loginerr/g)
+ {
+  print "\nLOGIN Failed !\n";
+  exit;
+ }
+ 
+ $mech->get($uri);
+ exit unless($mech->success());
+ print $uri,"\n" if($verbose);
+ $cnt = $mech->response->as_string;
+ last if($maxre++ > 4);
+}
+
+exit if($maxre > 4);
+print "GET Service Records\n" if($verbose);
+$mech->get("serviceRecords.jsp");
+exit unless($mech->success());
+$cnt = $mech->response->as_string;
+
+$mech->form_number(1);
+$mech->submit();
+print "POST Form\n" if($verbose);
+
+$cnt = $mech->response->content;
+$cnt = $1 if($cnt =~ m:<body[^>]*>(.*?)</body>:sig);
+
+$cnt =~ s/<[^>]+>//sig;
+$cnt =~ s/&nbsp;/ /sig;
+$cnt =~ s/([\n\r\t ]){2,}/;/sig;
+
+$cnt = $1 if($cnt =~ m/(Total Send Volume([^;]+;){10})/);
+
+@sl = split /;/,$cnt;
+
+$sl[4] = "Excluding Night";
+for($i=0;$i<=($#sl/2);$i++)
+{
+ printf("%25s : %s\n",$sl[$i],$sl[$i+5]);
+}
+
+$mech->get("../logout.jsp");
+

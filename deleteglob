@@ -1,0 +1,32 @@
+#!/bin/zsh
+
+# written primarily to help delete certain files from a glob pattern
+# with confirmation to exclude certain ones
+function usage() {
+	echo "Usage:    actionFile <command/program> [pattern]glob\n"
+}
+
+
+function actionOnGlob() {
+	for i in ${~2};do
+		#i=$(readlink -f "$i")
+		$1 $i 2>/dev/null
+		zenity --question --text "Delete file $i ?"
+		if [[ $? == 0 ]]; then
+			zenity --info --text "Deleting $i ..."
+			rm "$i"
+		fi
+	done
+}
+
+
+function main() {
+		if [[ $# != 2 ]]; then
+			usage
+		else
+			actionOnGlob $*
+		fi
+}
+
+main $*
+

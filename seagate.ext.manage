@@ -1,0 +1,15 @@
+#!/bin/sh
+
+# no argument means mount the device
+if [[ $1 == "-m" || -z $1 ]]; then
+	logger -sit "seagate-external" "mounting external disks"
+    /usr/bin/sudo /bin/mount -o noatime UUID="ab475f60-aa61-4311-ad49-4778953f4790" \
+		/media/external11/ 2>&1 | logger -sit "seagate-external"
+    /usr/bin/sudo /bin/mount -o noatime UUID="1e29242a-dbbe-476c-9af0-a58be1112185" \
+		/media/external12/ 2>&1 | logger -sit "seagate-external"
+elif [[ $1 == "-u" ]]; then
+	logger -sit "seagate-external" "un-mounting external disks"
+    /usr/bin/sudo /bin/umount /media/external11/ 2>&1 | logger -sit "seagate-external"
+    /usr/bin/sudo /bin/umount /media/external12/ 2>&1 | logger -sit "seagate-external"
+fi
+exit
