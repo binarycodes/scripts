@@ -1,0 +1,26 @@
+#!/bin/bash
+
+dateString=""
+
+if [[ -z $1 ]]; then
+    echo "No date given\n"
+    curdate=$(date +"%Y-%m-%d")
+    curtime=$(date +"%H:%M:%S")
+    echo -n "Date (YYYY-MM-DD) :: "
+    read -e -i"$curdate" date
+    echo -n "Time (HH:MM:SS) :: "
+    read -e -i"$curtime" time
+    dateString="$date $time"
+else
+    dateString="$1";
+fi
+
+if [[ ${#dateString} == 19 ]]; then
+    date --date "$dateString" >/dev/null 2>&1
+    if [[ $? == 0 ]]; then
+        sudo hwclock --set --date="$dateString"
+        sudo hwclock --hctosys
+    else
+        echo "Invalid date format"
+    fi
+fi

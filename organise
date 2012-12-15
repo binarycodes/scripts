@@ -78,4 +78,5 @@ case "${1}" in
         for directory in "${directories_to_process[@]}"; do
             process_directory "$directory"
         done
+        torbox_torrent
 esac

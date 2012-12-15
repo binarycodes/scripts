@@ -1,7 +1,13 @@
 #!/bin/sh
 
+
+INSIDE_DIR=N
+CURRENT_DIR=$(pwd)
+
 if [[ -d "$1" ]]; then
+    INSIDE_DIR=Y
     cd "$1"
+    echo "inside ... $(pwd)"
 fi
 
 # lowercase everything
@@ -35,3 +41,7 @@ perl-rename  "s/\'//g" *
 perl-rename  's/\.+/\./g' *
 
 perl-rename  's/\.$//g' *
+
+if [[ "$INSIDE_DIR" == "Y" ]]; then
+    cd "$CURRENT_DIR"
+fi
