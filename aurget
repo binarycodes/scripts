@@ -1,18 +1,20 @@
 #!/bin/sh
 
 echo "searching for package $1 ..."
-curl -#  http://aur.archlinux.org/packages/$1/$1.tar.gz -o $1.tar.gz
+link_name="https://aur.archlinux.org/packages/${1:0:2}/$1/$1.tar.gz"
+echo "fetching $link_name ..."
+curl -#  "$link_name"  -o $1.tar.gz
 ok=`file $1.tar.gz | grep -c gzip`
 if [ -z ok ]
 then
-	ok1=`file $1.tar.gz | grep -c bzip2`
-	if [ -z ok1 ]
-	then
-		echo "package tarball not found in AUR ..."
-	else
-		mv $1.tar.gz $1.tar.bz2
-		tar xf $1.tar.bz2
-	fi
+    ok1=`file $1.tar.gz | grep -c bzip2`
+    if [ -z ok1 ]
+    then
+        echo "package tarball not found in AUR ..."
+    else
+        mv $1.tar.gz $1.tar.bz2
+        tar xf $1.tar.bz2
+    fi
 else
     echo "package tarball successfuly downloaded :)"
     tar xf $1.tar.gz
