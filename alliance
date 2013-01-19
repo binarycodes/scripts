@@ -1,12 +1,24 @@
-
 #!/bin/sh
 
 ## lock file path
-LOCK_FILE=/tmp/.alliance.pid
+LOCK_FILE=/tmp/alliance.pid
 
 ## read encrypted data set
 export $(gpg --decrypt /etc/conf.d/alliance.data.gpg 2>/dev/null)
 
+
+##------------------------------------------------------------------------------
+## setting up traps
+trap exit_on_signal SIGINT SIGTERM
+
+exit_on_signal() {
+    echo "Script interrupted" 2>&1
+    rm "$LOCK_FILE"
+    exit 1
+}
+
+
+##------------------------------------------------------------------------------
 
 ##------------------------------------------------------------------------------
 ## start of functions
@@ -81,7 +93,7 @@ all_expiry () {
         local expiry_date=$(date --date "$expiry" +"%d-%b-%Y")
         local expiry_epoch=$(date -d $expiry_date +%s)
         local today_epoch=$(date -d $(date +%D) +%s)
-        local days_left=$(($expiry_epoch - $today_epoch))
+        local days_left=$(($(($expiry_epoch - $today_epoch)) / 86400))
         if (($days_left <= 2)); then
             echo "Alliance subscription for package $package_name expires on :: $expiry_date" | mail -s "Alliance subscription expires on $expiry_date" $EMAIL_ADDRESS
         fi
