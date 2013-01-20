@@ -1,19 +1,24 @@
 #!/bin/sh
 
+BUILD_DIR=~/builds/
+FILE_NAME=${BUILD_DIR}$1.tar.gz
+
 echo "searching for package $1 ..."
 link_name="https://aur.archlinux.org/packages/${1:0:2}/$1/$1.tar.gz"
+
 echo "fetching $link_name ..."
-curl -#  "$link_name"  -o $1.tar.gz
-ok=$(file $1.tar.gz | grep -c gzip)
+curl -#  "$link_name"  -o ${FILE_NAME}
+
+ok=$(file ${FILE_NAME} | grep -c gzip)
 if [[ -z ok ]]; then
-    ok=$(file $1.tar.gz | grep -c bzip2)
+    ok=$(file ${FILE_NAME} | grep -c bzip2)
     if [[ -z ok ]]; then
         echo "package tarball not found in AUR ..."
     else
-        mv $1.tar.gz $1.tar.bz2
-        tar xf $1.tar.bz2
+        mv ${FILE_NAME} ${BUILD_DIR}$1.tar.bz2
+        tar xf ${BUILD_DIR}$1.tar.bz2 -C ${BUILD_DIR}
     fi
 else
     echo "package tarball successfuly downloaded :)"
-    tar xf $1.tar.gz
+    tar xf ${FILE_NAME} -C ${BUILD_DIR}
 fi
