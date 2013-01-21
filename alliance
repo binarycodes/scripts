@@ -116,10 +116,9 @@ To: $TO_EMAIL_ADDRESS
 Cc: $CC_EMAILS
 Subject: Alliance subscription expires on $2
 
-Hi,
 
-    Alliance subscription for package $1 expires on $2
-    Contact Babun $ALLIANCE_CELL_NO for renewal.
+Alliance subscription for package $1 expires on $2
+Contact $ALLIANCE_CONTACT_NAME $ALLIANCE_CONTACT_CELL for renewal.
 
 --
 $(hostname | tr '[:lower:]' '[:upper:]')
