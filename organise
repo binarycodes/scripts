@@ -21,20 +21,16 @@ process_directory () {
         /home/sujoy/bin/myrename 2>/dev/null
         echo " done"
         echo -n "removing execute access from files ..."
-        find "$PWD" -type f -execdir chmod -x '{}' \+
+        find "$PWD" -type f -executable -execdir chmod -x '{}' \+
         echo " done"
         cd "$current_dir"
     fi
 }
 
 torbox_torrent() {
+    # torbox torrents are all of the form [a-z0-9]{40}.torrent
     cd ~/torrents
-    for i in *.torrent; do
-        other=$(echo "${i%.*}" | grep -c "[^0-9a-z]")
-        if [[ ${#i} == 48 && $other == 0 ]]; then
-            mv "$i" ~/torrents/deluge/
-        fi
-    done
+    find ./ -regextype posix-extended -regex "^\./[a-z0-9]{40}\.torrent$" -execdir mv '{}' ./deluge \;
 }
 
 
