@@ -1,0 +1,12 @@
+#!/bin/sh
+
+# no argument means mount the device
+if [[ $1 == "-m" || -z $1 ]]; then
+    logger -sit "nokia-x6" "mounting nokia x6 mass storage"
+    /usr/bin/sudo /bin/mount -o noatime UUID="1526-F7A1" \
+        /media/nokia/ 2>&1 | logger -sit "nokia-x6"
+elif [[ $1 == "-u" ]]; then
+    logger -sit "nokia-x6" "un-mounting nokia x6 mass storage"
+    /usr/bin/sudo /bin/umount /media/nokia/ 2>&1 | logger -sit "nokia-x6"
+fi
+exit
