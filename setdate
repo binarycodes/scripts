@@ -3,13 +3,11 @@
 dateString=""
 
 if [[ -z $1 ]]; then
-    echo "No date given\n"
+    printf "Please enter date and time ...\n\n"
     curdate=$(date +"%Y-%m-%d")
     curtime=$(date +"%H:%M:%S")
-    echo -n "Date (YYYY-MM-DD) :: "
-    read -e -i"$curdate" date
-    echo -n "Time (HH:MM:SS) :: "
-    read -e -i"$curtime" time
+    read -ep "Date (YYYY-MM-DD) :: " -i"$curdate" date
+    read -ep "Time (HH:MM:SS) :: " -i"$curtime" time
     dateString="$date $time"
 else
     dateString="$1";
@@ -21,6 +19,9 @@ if [[ ${#dateString} == 19 ]]; then
         sudo hwclock --set --date="$dateString"
         sudo hwclock --hctosys
     else
-        echo "Invalid date format"
+        printf "Date format not recognized\n"
     fi
+else
+    printf "Date format not recognized\n"
 fi
+
