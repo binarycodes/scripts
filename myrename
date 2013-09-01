@@ -1,47 +1,49 @@
-#!/bin/sh
+#!/bin/bash
 
 
-INSIDE_DIR=N
-CURRENT_DIR=$(pwd)
+declare -a rename_patterns=("y/A-Z/a-z/"
+    "s/^([\(\[\{]|[\)\]\}])//g"
+    "s/([\(\[\{]|[\)\]\}])/./g"
+    "s/^\s+//g"
+    "s/\s+/\./g"
+    "s/^\_+//g"
+    "s/\_+/\./g"
+    "s/^\,+//g"
+    "s/\,+/\./g"
+    "s/^\-+//g"
+    "s/\-+/\./g"
+    "s/^\=+//g"
+    "s/\=+/\./g"
+    "s/~//g"
+    "s/:/./g"
+    "s/\'//g"
+    "s/\.+/\./g"
+    "s/\.$//g")
+
+
+function rename_with_patterns(){
+    local newName="$1";
+    if [[ -z "$newName" ]]; then
+        echo "argument expected." 1>&2
+    else
+        for i in "${rename_patterns[@]}"
+        do
+            local checkName=$(perl-rename -v "${i}" "$newName")
+            if [[ ! -z "$checkName" ]]; then
+                newName=${checkName##* }
+            fi
+        done
+        if [[ ! -z "$2" ]]; then
+            eval "$2=${newName}"
+        fi
+    fi
+}
+
+
 
 if [[ -d "$1" ]]; then
-    INSIDE_DIR=Y
-    cd "$1"
-    echo "inside ... $(pwd)"
-fi
-
-# lowercase everything
-perl-rename  'y/A-Z/a-z/' *
-
-# if found at the beginning then delete else replace with period '.'
-perl-rename  "s/^([\(\[\{]|[\)\]\}])//g" *
-perl-rename  "s/([\(\[\{]|[\)\]\}])/./g" *
-
-perl-rename  's/^\s+//g' *
-perl-rename  's/\s+/\./g' *
-
-perl-rename  's/^\_+//g' *
-perl-rename  's/\_+/\./g' *
-
-perl-rename  's/^\,+//g' *
-perl-rename  's/\,+/\./g' *
-
-perl-rename  's/^\-+//g' *
-perl-rename  's/\-+/\./g' *
-
-perl-rename  's/^\=+//g' *
-perl-rename  's/\=+/\./g' *
-
-perl-rename  's/~//g' *
-
-perl-rename  's/:/./g' *
-
-perl-rename  "s/\'//g" *
-
-perl-rename  's/\.+/\./g' *
-
-perl-rename  's/\.$//g' *
-
-if [[ "$INSIDE_DIR" == "Y" ]]; then
-    cd "$CURRENT_DIR"
+    rename_with_patterns "$1" DIR;
+    for file in ${DIR}/*; do
+        rename_with_patterns "$file";
+    done
 fi

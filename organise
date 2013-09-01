@@ -14,23 +14,19 @@ move_files () {
 
 process_directory () {
     if [[ -d $1 ]]; then
-        echo "entering directory :: $1"
-        current_dir=$(pwd)
-        cd "$1"
-        echo -n "renaming files ..."
-        /home/sujoy/bin/myrename 2>/dev/null
+        echo "processing directory --> $1"
+        echo -n "    renaming files ... "
+        /home/sujoy/bin/myrename "$1" 2>/dev/null
         echo " done"
-        echo -n "removing execute access from files ..."
-        find "$PWD" -type f -executable -execdir chmod -x '{}' \+
+        echo -n "    removing execute access from files ... "
+        find "$1" -type f -executable -execdir chmod -x '{}' \+
         echo " done"
-        cd "$current_dir"
     fi
 }
 
 torbox_torrent() {
     # torbox torrents are all of the form [a-z0-9]{40}.torrent
-    cd ~/torrents
-    find ./ -regextype posix-extended -regex "^\./[a-z0-9]{40}\.torrent$" -execdir mv '{}' ./deluge \;
+    find ${HOME}/torrents -regextype posix-extended -regex "^\./[a-z0-9]{40}\.torrent$" -execdir mv '{}' ./deluge \;
 }
 
 
