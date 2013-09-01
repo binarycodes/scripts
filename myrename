@@ -1,5 +1,20 @@
 #!/bin/bash
 
+##------------------------------------------------------------------------------
+## setting up traps
+##------------------------------------------------------------------------------
+
+trap exit_on_signal SIGINT SIGTERM
+
+exit_on_signal() {
+    echo "Script interrupted" 2>&1
+    exit 1
+}
+
+##------------------------------------------------------------------------------
+## end setting up trap
+##------------------------------------------------------------------------------
+
 
 declare -a rename_patterns=("y/A-Z/a-z/"
     "s/^([\(\[\{]|[\)\]\}])//g"
@@ -21,11 +36,16 @@ declare -a rename_patterns=("y/A-Z/a-z/"
     "s/\.$//g")
 
 
-function rename_with_patterns(){
-    local newName="$1";
+##------------------------------------------------------------------------------
+## start of functions
+##------------------------------------------------------------------------------
+
+function rename_with_patterns() {
+    local newName="$1"
     if [[ -z "$newName" ]]; then
         echo "argument expected." 1>&2
     else
+        echo "processing file ${newName}"
         for i in "${rename_patterns[@]}"
         do
             local checkName=$(perl-rename -v "${i}" "$newName")
@@ -40,10 +60,31 @@ function rename_with_patterns(){
 }
 
 
+function main() {
+    if (( UID == 0 )); then
+        echo "you're using way too much priviledge for renaming files. not allowed."
+    else
+        if [[ -d "$1" ]]; then
+            rename_with_patterns "$1" DIR
+            if [[ ! -z "$DIR" ]]; then
+                for file in ${DIR}/*; do
+                    rename_with_patterns "$file"
+                done
+            fi
+        elif [[ -f "$1" ]]; then
+            rename_with_patterns "$1"
+        fi
+    fi
+}
 
-if [[ -d "$1" ]]; then
-    rename_with_patterns "$1" DIR;
-    for file in ${DIR}/*; do
-        rename_with_patterns "$file";
-    done
+
+##------------------------------------------------------------------------------
+## end of functions
+##------------------------------------------------------------------------------
+
+param=$(realpath "$1")
+if [[ "${param}" == "/" ]]; then
+    echo "not going to rename from / .Try somewhere else."
+else
+    main "$param"
 fi
