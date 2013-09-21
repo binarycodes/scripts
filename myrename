@@ -45,12 +45,14 @@ function rename_with_patterns() {
     if [[ -z "$newName" ]]; then
         echo "argument expected." 1>&2
     else
-        echo "processing file ${newName}"
+        echo "processing file ${newName} ::"
         for i in "${rename_patterns[@]}"
         do
+            echo "running pattern :: $i"
             local checkName=$(perl-rename -v "${i}" "$newName")
             if [[ ! -z "$checkName" ]]; then
-                newName=${checkName##* }
+                newName=${checkName##* -> }
+                echo "#eee --- $newName"
             fi
         done
         if [[ ! -z "$2" ]]; then
@@ -68,7 +70,7 @@ function main() {
             rename_with_patterns "$1" DIR
             if [[ ! -z "$DIR" ]]; then
                 for file in ${DIR}/*; do
-                    rename_with_patterns "$file"
+                    main "$file"
                 done
             fi
         elif [[ -f "$1" ]]; then
@@ -86,5 +88,5 @@ param=$(realpath "$1")
 if [[ "${param}" == "/" ]]; then
     echo "not going to rename from / .Try somewhere else."
 else
-    main "$param"
+    main "$1"
 fi
