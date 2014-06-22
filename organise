@@ -1,6 +1,7 @@
 #!/bin/zsh
 
 move_files () {
+    mv -t /home/sujoy/documents/finance/banking/credit.card/ /home/sujoy/randomtrash/4617*.(pdf|PDF)(N) 2>/dev/null
     mv -t /home/sujoy/documents/finance/bsnl.landline.bills/ /home/sujoy/randomtrash/8005727947*(N) 2>/dev/null
     mv -t /home/sujoy/torrents/ /home/sujoy/randomtrash/*.torrent(N) 2>/dev/null
     mv -t /home/sujoy/videos/ /home/sujoy/randomtrash/*.(flv|wmv|3gp|mp4|d|ogv|mov|m4v|mkv|avi)(N) 2>/dev/null
@@ -26,7 +27,7 @@ process_directory () {
 
 torbox_torrent() {
     # torbox torrents are all of the form [a-z0-9]{40}.torrent
-    find ${HOME}/torrents -regextype posix-extended -regex "^\./[a-z0-9]{40}\.torrent$" -execdir mv '{}' ./deluge \;
+    find ${HOME}/torrents -regextype posix-extended -regex "^.*\/[A-Za-z0-9]{40}\.torrent$" -execdir mv '{}' ${HOME}/torrents/deluge/ \;
 }
 
 
@@ -34,9 +35,7 @@ directories_to_process=(/home/sujoy/torrents/
     /home/sujoy/videos/
     /home/sujoy/music/
     /home/sujoy/archives/
-    /home/sujoy/documents/pdfs/
-    /home/sujoy/documents/
-    /home/sujoy/documents/ebooks/)
+    /home/sujoy/documents/)
 
 
 # --- Function execution starts here ---
@@ -45,8 +44,8 @@ move_files
 # Note to self: shell array reference starts at 1
 case "${1}" in
     -t) #torrents
-        process_directory "${directories_to_process[1]}"
         torbox_torrent
+        process_directory "${directories_to_process[1]}"
         ;;
     -v) #videos
         process_directory "${directories_to_process[2]}"
