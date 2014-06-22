@@ -1,6 +1,17 @@
 #!/bin/bash
 
 ##------------------------------------------------------------------------------
+## environment setup
+##------------------------------------------------------------------------------
+__DEBUG__=0
+__RECURSE__=1
+##------------------------------------------------------------------------------
+## end environment setup
+##------------------------------------------------------------------------------
+
+
+
+##------------------------------------------------------------------------------
 ## setting up traps
 ##------------------------------------------------------------------------------
 
@@ -18,18 +29,25 @@ exit_on_signal() {
 
 declare -a rename_patterns=("y/A-Z/a-z/"
     "s/^([\(\[\{]|[\)\]\}])//g"
+    "s/\/([\(\[\{]|[\)\]\}])//g"
     "s/([\(\[\{]|[\)\]\}])/./g"
     "s/^\s+//g"
+    "s/\/\s+//g"
     "s/\s+/\./g"
     "s/^\_+//g"
+    "s/\/\_+//g"
     "s/\_+/\./g"
     "s/^\,+//g"
+    "s/\/\,+//g"
     "s/\,+/\./g"
     "s/^\-+//g"
+    "s/\/\-+//g"
     "s/\-+/\./g"
     "s/^\=+//g"
+    "s/\/\=+//g"
     "s/\=+/\./g"
     "s/~//g"
+    "s/&/and/g"
     "s/:/./g"
     "s/\'//g"
     "s/\.+/\./g"
@@ -43,16 +61,16 @@ declare -a rename_patterns=("y/A-Z/a-z/"
 function rename_with_patterns() {
     local newName="$1"
     if [[ -z "$newName" ]]; then
-        echo "argument expected." 1>&2
+        (($__DEBUG__==0)) || echo "argument expected." 1>&2
     else
-        echo "processing file ${newName} ::"
+        (($__DEBUG__==0)) || echo "processing file ${newName} ::"
         for i in "${rename_patterns[@]}"
         do
-            echo "running pattern :: $i"
+            (($__DEBUG__==0)) || echo "running pattern :: $i"
             local checkName=$(perl-rename -v "${i}" "$newName")
             if [[ ! -z "$checkName" ]]; then
                 newName=${checkName##* -> }
-                echo "#eee --- $newName"
+                (($__DEBUG__==0)) || echo "renamed to ... $newName"
             fi
         done
         if [[ ! -z "$2" ]]; then
@@ -69,9 +87,15 @@ function main() {
         if [[ -d "$1" ]]; then
             rename_with_patterns "$1" DIR
             if [[ ! -z "$DIR" ]]; then
-                for file in ${DIR}/*; do
-                    main "$file"
-                done
+                if (( $__RECURSE__==0)); then
+                    for file in ${DIR}/*; do
+                        main "$file"
+                    done
+                else
+                    for file in ${DIR}/*; do
+                        rename_with_patterns "$file"
+                    done
+                fi
             fi
         elif [[ -f "$1" ]]; then
             rename_with_patterns "$1"
@@ -88,5 +112,5 @@ param=$(realpath "$1")
 if [[ "${param}" == "/" ]]; then
     echo "not going to rename from / .Try somewhere else."
 else
-    main "$1"
+    main "$param"
 fi
