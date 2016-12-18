@@ -1,5 +1,0 @@
-#!/bin/sh
-
-for i in /proc/$(ps ax | awk '/flash/ && !/grep/ {print $1}')/fd/* ;do
- file "$i"
-done | awk -F":" '/\/tmp\/Flash/ {print $1}'

@@ -1,3 +1,0 @@
-#!/bin/sh
-
-curl "https://www.archlinux.org/mirrorlist/?country=all&protocol=ftp&protocol=http&ip_version=4&use_mirror_status=on" | sed 's/#Server/Server/' > /etc/pacman.d/mirrorlist

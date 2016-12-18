@@ -61,11 +61,7 @@ all_login () {
                 --data "pass=$ALLIANCE_PASSWORD" \
                 --data 'login=Login' $ALLIANCE_LOGIN_PAGE >/dev/null
             if [[ ! -z $TERM ]]; then
-                local user_agent="Mozilla/5.0 (Windows; U; Windows NT 5.1; de; rv:1.9.2.3) Gecko/20100401 Firefox/3.6.3"
-
-                local ip=$(curl -sA $user_agent http://whatismyipaddress.com/ | \
-                    grep "LOOKUPADDRESS" | \
-                    sed 's/.*value="\([0-9.]*\).*/\1/')
+                local ip=$(curl -s icanhazip.com)
                 if [[ -z $ip ]]; then
                     echo "error connecting to network" 1>&2
                 else

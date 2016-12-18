@@ -4,7 +4,7 @@ BUILD_DIR=~/builds/
 FILE_NAME=${BUILD_DIR}$1.tar.gz
 
 echo "searching for package $1 ..."
-link_name="https://aur.archlinux.org/packages/${1:0:2}/$1/$1.tar.gz"
+link_name="https://aur.archlinux.org/cgit/aur.git/snapshot/$1.tar.gz"
 
 echo "fetching $link_name ..."
 curl -#  "$link_name"  -o ${FILE_NAME}

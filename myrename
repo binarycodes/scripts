@@ -3,7 +3,7 @@
 ##------------------------------------------------------------------------------
 ## environment setup
 ##------------------------------------------------------------------------------
-__DEBUG__=0
+__DEBUG__=1
 __RECURSE__=1
 ##------------------------------------------------------------------------------
 ## end environment setup
@@ -29,7 +29,7 @@ exit_on_signal() {
 
 declare -a rename_patterns=("y/A-Z/a-z/"
     "s/^([\(\[\{]|[\)\]\}])//g"
-    "s/\/([\(\[\{]|[\)\]\}])//g"
+    "s/\/([\(\[\{]|[\)\]\}])/\//g"
     "s/([\(\[\{]|[\)\]\}])/./g"
     "s/^\s+//g"
     "s/\/\s+//g"
@@ -51,7 +51,8 @@ declare -a rename_patterns=("y/A-Z/a-z/"
     "s/:/./g"
     "s/\'//g"
     "s/\.+/\./g"
-    "s/\.$//g")
+    "s/\.$//g"
+    "s/[^\/A-Za-z0-9.+]//g")
 
 
 ##------------------------------------------------------------------------------
@@ -61,16 +62,16 @@ declare -a rename_patterns=("y/A-Z/a-z/"
 function rename_with_patterns() {
     local newName="$1"
     if [[ -z "$newName" ]]; then
-        (($__DEBUG__==0)) || echo "argument expected." 1>&2
+        (($__DEBUG__==1)) || echo "argument expected." 1>&2
     else
-        (($__DEBUG__==0)) || echo "processing file ${newName} ::"
+        (($__DEBUG__==1)) || echo "processing file ${newName} ::"
         for i in "${rename_patterns[@]}"
         do
-            (($__DEBUG__==0)) || echo "running pattern :: $i"
+            (($__DEBUG__==1)) || echo "running pattern :: $i"
             local checkName=$(perl-rename -v "${i}" "$newName")
             if [[ ! -z "$checkName" ]]; then
                 newName=${checkName##* -> }
-                (($__DEBUG__==0)) || echo "renamed to ... $newName"
+                (($__DEBUG__==1)) || echo "renamed to ... $newName"
             fi
         done
         if [[ ! -z "$2" ]]; then
@@ -109,8 +110,17 @@ function main() {
 ##------------------------------------------------------------------------------
 
 param=$(realpath "$1")
+if [[ $2 =~ ^[0-9]+$ ]]; then
+    __RECURSE__=$2
+fi
+
 if [[ "${param}" == "/" ]]; then
     echo "not going to rename from / .Try somewhere else."
+    exit 1
 else
+    (($__DEBUG__==1)) || echo "RECURSE :: $__RECURSE__"
     main "$param"
 fi
+
+exit 0
+

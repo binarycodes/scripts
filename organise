@@ -17,7 +17,7 @@ process_directory () {
     if [[ -d $1 ]]; then
         echo "processing directory --> $1"
         echo -n "    renaming files ... "
-        /home/sujoy/bin/myrename "$1" 2>/dev/null
+        /home/sujoy/projects/rename/rename -q "$1" 2>/dev/null
         echo " done"
         echo -n "    removing execute access from files ... "
         find "$1" -type f -executable -execdir chmod -x '{}' \+

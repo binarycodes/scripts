@@ -1,0 +1,114 @@
+#!/bin/sh
+
+## lock file path
+LOCK_FILE=/tmp/alliance.pid
+
+##
+_INTERFACE=eth0
+_ADDRESS=192.168.1.30
+_NETMASK=255.255.255.0
+_BROADCAST=192.168.1.255
+_GATEWAY=192.168.1.1
+
+##------------------------------------------------------------------------------
+## setting up traps
+##------------------------------------------------------------------------------
+
+trap exit_on_signal SIGINT SIGTERM
+
+exit_on_signal() {
+    echo "Script interrupted" 2>&1
+    rm "$LOCK_FILE"
+    exit 1
+}
+
+##------------------------------------------------------------------------------
+## end setting up trap
+##------------------------------------------------------------------------------
+
+
+##------------------------------------------------------------------------------
+## start of functions
+##------------------------------------------------------------------------------
+
+iface_up () {
+    if (( UID != 0 )); then
+        echo "error: you cannot perform this operation unless you are root." 1>&2
+    else
+        iface_down
+
+        ip link set dev eth0 up
+        ip addr add $_ADDRESS/$_NETMASK broadcast '+' dev $_INTERFACE
+
+        ip route add default via $_GATEWAY
+
+    fi
+}
+
+iface_down () {
+    ip addr flush dev $_INTERFACE
+    ip link set dev $_INTERFACE down
+}
+
+
+gateway_response () {
+    local ping_response=$(ping -c1 $_GATEWAY | grep "1 received" -c)
+    return $ping_response
+}
+
+
+
+usage () {
+    cat <<EOF
+    Usage:   $(basename $0) [options]
+
+    Basic options:
+    -s        setup network connection
+    -h        show help
+EOF
+}
+
+error_exit () {
+    usage
+    rm "$LOCK_FILE"
+    exit 1
+}
+
+##------------------------------------------------------------------------------
+## end of functions
+##------------------------------------------------------------------------------
+
+if [[ -e "$LOCK_FILE" ]]; then
+    echo "another instance is still active ... $(<$LOCK_FILE)" 1>&2
+    echo "if you are sure another instance is not up, you can remove ${LOCK_FILE}"
+else
+    # creating the lock file
+    echo "$$" > "$LOCK_FILE"
+
+    # main execution
+    while getopts ":sxleh" opt; do
+        case $opt in
+            s)
+                iface_up
+                ;;
+            h)
+                usage
+                ;;
+            \?)
+                echo "invalid option: -$OPTARG" >&2
+                error_exit
+                ;;
+            :)
+                echo "Option -$OPTARG requires an argument." >&2
+                error_exit
+                ;;
+        esac
+    done
+
+    if (( $# == 0 )); then
+        iface_up
+    fi
+
+    ## removing lock
+    rm "$LOCK_FILE"
+fi
